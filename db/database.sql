@@ -19,6 +19,7 @@ create table
         status varchar(16) null default null,
         created_at timestamp null default null,
         updated_at timestamp null default null,
+        primary key (id)
     );
 
 create table
@@ -29,4 +30,5 @@ create table
         status varchar(16) null default null,
         created_at timestamp null default null,
         updated_at timestamp null default null,
+        primary key (id)
     );
