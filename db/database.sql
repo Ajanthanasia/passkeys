@@ -3,7 +3,7 @@ create table
         id int (16) not null auto_increment,
         name varchar(255) null default null,
         email varchar(255) null default null,
-        email_verified_at timestamp default null,
+        email_verified_at timestamp null default null,
         password varchar(255) null default null,
         status varchar(16) null default null,
         created_at timestamp null default null,
