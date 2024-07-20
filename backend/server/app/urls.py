@@ -7,6 +7,7 @@ urlpatterns = [
     path('/register',userview.Register),
     # path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('/login',userview.Login),
+    path('/otp',userview.otp_verify)
 
     # path('/Register',Users.User_Register),
 
