@@ -13,7 +13,7 @@ function RegisterPage() {
     const [passwordError, setPasswordError] = useState("");
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
-    const signupUrl = "#";
+    const signupUrl = "http://localhost:4500/api/v1/register";
 
 
     const handleSubmit = async (event) => {
@@ -43,7 +43,7 @@ function RegisterPage() {
                         username: username,
                         email: email,
                         password: password,
-                        confirm_password: confirmPassword,
+                        confirm_Password: confirmPassword,
                     });
                     console.log(res);
                     console.log('succ');

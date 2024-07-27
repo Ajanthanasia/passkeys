@@ -1,13 +1,14 @@
 from django.shortcuts import render   # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework.decorators  import api_view # type: ignore
-from .models import User_roles,otp_verification
+from .models import User_roles,otp_verification,face_recoganizer
 from django.forms.models import model_to_dict
 from django.conf import settings
 from django.core.mail import send_mail
 import re
 import random
 from django.utils import timezone
+
 
 # Create your views here.
 def Password_Validation(password):
@@ -46,7 +47,7 @@ def Register(request):
     password=request.data.get('password')
     confirm_Password=request.data.get('confirm_Password')
     regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
-    print("----1---")
+
     existing_user =User_roles.objects.filter(email=email).exists()
     if existing_user:
         return Response({'msg':'Already User Email  exists...','Type':'Warning'})
@@ -55,7 +56,7 @@ def Register(request):
     if re.match(regex,email) is None:
         return Response({'msg':"{} is an invalid email address.".format(email),'Type':'Danger'})
     values=Password_Validation(password)
-    print("----2---")
+
     if values[0]==False:
         msg=values[1]
         return Response({'msg':msg,'Type':'Warning'})
@@ -68,7 +69,7 @@ def Register(request):
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
     send_mail( subject, message, email_from, recipient_list )
-    print("----2---")
+
     if otp:
         user=User_roles()
         user.name=name
@@ -85,6 +86,7 @@ def Register(request):
 def Login(request):
     email=request.data.get('email')
     password=request.data.get('password')
+    image=request.data.get('image')
     try:
 
         user =User_roles.objects.get(email=email)
@@ -119,6 +121,24 @@ def otp_verify(request):
             return Response({'msg': 'OTP verified successfully. Registration complete.', 'type': 'Success'})            
     except (User_roles.DoesNotExist, otp_verification.DoesNotExist):
         return Response({'msg': 'Invalid OTP or email.', 'type': 'danger'})     
+
+
+@api_view(['POST'])
+def register_face_recoganize(request):
+    image=request.data.get('image')
+    userid=request.data.get('user_id')
+    # user_id=int(userid)
+    name=request.data.get('name')
+
+    try:
+        user=User_roles.objects.get(id=userid)
+        face_rec_entry = face_recoganizer(user=user,image=image,name=name)
+        face_rec_entry.save()
+        return Response({'msg': 'image registered successfully. Registration complete.', 'type': 'Success'})
+    except (User_roles.DoesNotExist):
+        return Response({'msg': 'Invalid email address', 'type': 'danger'}) 
+
+
 
 
 
