@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 import LoginPage from "../signin/login";
 import RegisterPage from "../signup/register";
+import Dashboard from "../dash/home/home";
 
 function RoutePath() {
     return (
@@ -14,6 +15,7 @@ function RoutePath() {
                 <Routes>
                     <Route path="/" element={<LoginPage></LoginPage>} ></Route>
                     <Route path="/register" element={<RegisterPage></RegisterPage>}></Route>
+                    <Route path="/dashboard" element={<Dashboard></Dashboard>}></Route>
                 </Routes>
             </BrowserRouter>
         </div>

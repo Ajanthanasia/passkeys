@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import {Navigate, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ShowSuccessMessage from './../alert/show-success-message';
 import ShowWarningMessage from "../alert/show-warning-message";
+import { storeUserData } from "../../services/storage";
 
 function LoginPage() {
+    const navigate = useNavigate(); 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -14,7 +16,7 @@ function LoginPage() {
     const [msg, setMsg] = useState("");
     const [error, setError] = useState("");
 
-    const signinUrl = "#";
+    const signinUrl = "http://localhost:4500/api/v1/login";
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -33,11 +35,19 @@ function LoginPage() {
                     email: email,
                     password: password,
                 });
-                setMsg('Successfully Login');
-                console.log(res);
+                if (res.data.Type=="Success"){
+                    storeUserData(res.data)
+                    // console.log(res)
+                    navigate("/dashboard");
+                }
+                else if(res.data.Type !="Success"){
+                    setError(res.data.msg)
+                  
+                }  
             }
         } catch (error) {
             console.log(error);
+            setError(error)
         }
     }
     return (
@@ -74,6 +84,8 @@ function LoginPage() {
                             onChange={(e) => setPassword(e.target.value)}
                         />
                         <code>{passwordError}</code>
+                        
+
                     </div>
                 </div>
                 <div className="row mt-1">

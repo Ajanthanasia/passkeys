@@ -2,10 +2,14 @@ from django.shortcuts import render   # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework.decorators  import api_view # type: ignore
 from .models import User_roles,otp_verification,face_recoganizer
+import face_recognition
+import cv2
 from django.forms.models import model_to_dict
 from django.conf import settings
 from django.core.mail import send_mail
 import re
+import os
+from pathlib import Path
 import random
 from django.utils import timezone
 
@@ -42,10 +46,11 @@ def Password_Validation(password):
 
 @api_view(['POST'])
 def Register(request):
-    name=request.data.get('name')
+    name=request.data.get('username')
     email=request.data.get('email')
     password=request.data.get('password')
     confirm_Password=request.data.get('confirm_Password')
+    
     regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
 
     existing_user =User_roles.objects.filter(email=email).exists()
@@ -86,18 +91,42 @@ def Register(request):
 def Login(request):
     email=request.data.get('email')
     password=request.data.get('password')
-    image=request.data.get('image')
+    image_pic=request.data.get('image')
     try:
-
-        user =User_roles.objects.get(email=email)
-        if user.password !=password:
-            return Response({'msg': 'Password Authondication Failed','Type':'Warrning'})
-        if user.is_active:
-            user.id=str(user.id)
-            user_dict=model_to_dict(user)
-            msg={'Type':'Success'}
-            return Response(user_dict|msg)
-        return Response({'msg':'wrong authondication','Type':'Danger'})
+        if image_pic==None :
+            user =User_roles.objects.get(email=email)
+            if user.password !=password:
+                return Response({'msg': 'Password Authondication Failed','Type':'Warrning'})
+            if user.is_active:
+                user.id=str(user.id)
+                user_dict=model_to_dict(user)
+                msg={'Type':'Success'}
+                return Response(user_dict|msg)
+            return Response({'msg':'wrong authondication','Type':'Danger'})
+        elif(image_pic):
+            MEDIA_ROOT = Path(settings.MEDIA_ROOT) / 'face_recognition_pic'
+            
+            for f in os.listdir(str(MEDIA_ROOT)):
+                # if f.lower().endswith('.png', '.jpg', '.jpeg'):
+                image_file=os.path.join(str(MEDIA_ROOT), f)
+                BASE_DIR = Path(__file__).resolve().parent
+                MEDIA_ROOT = BASE_DIR / 'media' / 'face_recognition_pic'
+                imgelon =face_recognition.load_image_file(image_pic)
+                imgelon = cv2.cvtColor(imgelon,cv2.COLOR_BGR2RGB)
+                train_elon_encodings = face_recognition.face_encodings(imgelon)[0]
+                test = face_recognition.load_image_file(image_file)
+                test = cv2.cvtColor(test, cv2.COLOR_BGR2RGB)
+                test_encode = face_recognition.face_encodings(test)[0]
+                validate=face_recognition.compare_faces([train_elon_encodings],test_encode)
+                # print(validate,"----------------validate------------")
+                if validate[0]==True:
+                    path_image='face_recognition_pic/'+f
+                    image_object=face_recoganizer.objects.get(image=path_image)
+                    user=User_roles.objects.get(id=image_object.user_id)
+                    user_dict=model_to_dict(user)
+                    msg={'Type':'Success'}
+                    return Response(user_dict|msg)                    
+                return Response({'msg': 'Face recognition    pass', 'Type': 'Warning'})
     except User_roles.DoesNotExist:
         return Response({'msg': 'Authentication failed','Type':'Danger'})
     
@@ -118,9 +147,9 @@ def otp_verify(request):
             user.is_active = True
             user.save()
             otp_entry.delete()   
-            return Response({'msg': 'OTP verified successfully. Registration complete.', 'type': 'Success'})            
+            return Response({'msg': 'OTP verified successfully. Registration complete.', 'Type': 'Success'})            
     except (User_roles.DoesNotExist, otp_verification.DoesNotExist):
-        return Response({'msg': 'Invalid OTP or email.', 'type': 'danger'})     
+        return Response({'msg': 'Invalid OTP or email.', 'Type': 'danger'})     
 
 
 @api_view(['POST'])
