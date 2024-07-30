@@ -10,5 +10,6 @@ urlpatterns = [
     path('login',userview.Login),
     path('otp',userview.otp_verify),
     path('register_face_recog',userview.register_face_recoganize),
+    path('Update_userDetails',userview.Update_userDetails),
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

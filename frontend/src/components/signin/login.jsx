@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import {Navigate, Link, useNavigate } from "react-router-dom";
+import { Navigate, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ShowSuccessMessage from './../alert/show-success-message';
 import ShowWarningMessage from "../alert/show-warning-message";
-import { storeUserData } from "../../services/storage";
+import { storeUserData, getUserData } from "../../services/storage";
 
 function LoginPage() {
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
+    const userdetails = getUserData()
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -35,21 +37,21 @@ function LoginPage() {
                     email: email,
                     password: password,
                 });
-                if (res.data.Type=="Success"){
+                if (res.data.Type == "Success") {
                     storeUserData(res.data)
                     // console.log(res)
                     navigate("/dashboard");
                 }
-                else if(res.data.Type !="Success"){
+                else if (res.data.Type != "Success") {
                     setError(res.data.msg)
-                  
-                }  
+
+                }
             }
         } catch (error) {
             console.log(error);
-            setError(error)
         }
     }
+ 
     return (
         <div className="panel panel-default">
             <div className="row">
@@ -57,8 +59,6 @@ function LoginPage() {
                     <span className="btn btn-default form-control">Welcome to Passkeys</span>
                 </div>
             </div>
-            <ShowSuccessMessage msg={msg} />
-            <ShowWarningMessage msg={error} />
             <form onSubmit={handleSubmit}>
                 <div className="row">
                     <div className="col-md-8">
@@ -84,8 +84,16 @@ function LoginPage() {
                             onChange={(e) => setPassword(e.target.value)}
                         />
                         <code>{passwordError}</code>
+                    </div>
+                </div>
+                <div className="row mt-1">
+                    <div className="col-md-8">
+                        <Link to="/Login_By_face_ID">
+                            <button className="btn btn-success form-control">
+                            Login By Face_ID
+                            </button>
+                        </Link>
                         
-
                     </div>
                 </div>
                 <div className="row mt-1">

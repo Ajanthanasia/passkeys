@@ -8,10 +8,17 @@ from django.forms.models import model_to_dict
 from django.conf import settings
 from django.core.mail import send_mail
 import re
+import sys
+from datetime import datetime
+import platform
+import sysconfig
 import os
 from pathlib import Path
 import random
 from django.utils import timezone
+from django.core.files.base import ContentFile
+import base64
+from django.core.files.storage import default_storage
 
 
 # Create your views here.
@@ -89,47 +96,67 @@ def Register(request):
 
 @api_view(['POST'])
 def Login(request):
-    email=request.data.get('email')
-    password=request.data.get('password')
-    image_pic=request.data.get('image')
+    email = request.data.get('email')
+    password = request.data.get('password')
+    image_pic = request.data.get('image')
+
     try:
-        if image_pic==None :
-            user =User_roles.objects.get(email=email)
-            if user.password !=password:
-                return Response({'msg': 'Password Authondication Failed','Type':'Warrning'})
+        if image_pic is None:
+            user = User_roles.objects.get(email=email)
+            if user.password != password:
+                return Response({'msg': 'Password Authentication Failed', 'Type': 'Warning'})
+
             if user.is_active:
-                user.id=str(user.id)
-                user_dict=model_to_dict(user)
-                msg={'Type':'Success'}
-                return Response(user_dict|msg)
-            return Response({'msg':'wrong authondication','Type':'Danger'})
-        elif(image_pic):
+                # Send email alert
+                subject = 'Email Alert System'
+                message = f'Hi {user.name}, Someone logged in to {platform.system()}'
+                email_from = settings.EMAIL_HOST_USER
+                recipient_list = [email]
+                send_mail(subject, message, email_from, recipient_list)
+
+                user.id = str(user.id)
+                user_dict = model_to_dict(user)
+                msg = {'Type': 'Success'}
+                return Response({**user_dict, **msg})
+            return Response({'msg': 'Wrong Authentication', 'Type': 'Danger'})
+
+        else:
+            format, imgstr = image_pic.split(';base64,')
+            ext = 'jpg'
+            date = datetime.now().strftime("%Y%m%d_%H%M%S")
+            file_name = f"a_{date}.{ext}"
+            file_content = ContentFile(base64.b64decode(imgstr), name=file_name)
+
             MEDIA_ROOT = Path(settings.MEDIA_ROOT) / 'face_recognition_pic'
-            
+
             for f in os.listdir(str(MEDIA_ROOT)):
-                # if f.lower().endswith('.png', '.jpg', '.jpeg'):
-                image_file=os.path.join(str(MEDIA_ROOT), f)
-                BASE_DIR = Path(__file__).resolve().parent
-                MEDIA_ROOT = BASE_DIR / 'media' / 'face_recognition_pic'
-                imgelon =face_recognition.load_image_file(image_pic)
-                imgelon = cv2.cvtColor(imgelon,cv2.COLOR_BGR2RGB)
+                # db contain file checking
+                image_file = os.path.join(str(MEDIA_ROOT), f)
+                imgelon = face_recognition.load_image_file(image_file)
+                imgelon = cv2.cvtColor(imgelon, cv2.COLOR_BGR2RGB)
                 train_elon_encodings = face_recognition.face_encodings(imgelon)[0]
-                test = face_recognition.load_image_file(image_file)
+                
+                # testing file checking
+                test = face_recognition.load_image_file(file_content)
                 test = cv2.cvtColor(test, cv2.COLOR_BGR2RGB)
                 test_encode = face_recognition.face_encodings(test)[0]
-                validate=face_recognition.compare_faces([train_elon_encodings],test_encode)
-                # print(validate,"----------------validate------------")
-                if validate[0]==True:
-                    path_image='face_recognition_pic/'+f
-                    image_object=face_recoganizer.objects.get(image=path_image)
-                    user=User_roles.objects.get(id=image_object.user_id)
-                    user_dict=model_to_dict(user)
-                    msg={'Type':'Success'}
-                    return Response(user_dict|msg)                    
-                return Response({'msg': 'Face recognition    pass', 'Type': 'Warning'})
+                
+                validate = face_recognition.compare_faces([train_elon_encodings], test_encode)
+                if validate[0]:
+                    path_image = 'face_recognition_pic/' + f
+                    image_object = face_recoganizer.objects.get(image=path_image)
+                    user = User_roles.objects.get(id=image_object.user_id)
+                    user_dict = model_to_dict(user)
+                    msg = {'Type': 'Success'}
+                    return Response({**user_dict, **msg})
+            return Response({'msg': 'Face recognition failed', 'Type': 'Warning'})
+
     except User_roles.DoesNotExist:
-        return Response({'msg': 'Authentication failed','Type':'Danger'})
-    
+        return Response({'msg': 'Authentication failed', 'Type': 'Danger'})
+    except Exception as e:
+        return Response({'msg': str(e), 'Type': 'Danger'})
+
+
 @api_view(['POST'])
 def otp_verify(request):
     otp_num=request.data.get('otp')
@@ -154,21 +181,51 @@ def otp_verify(request):
 
 @api_view(['POST'])
 def register_face_recoganize(request):
-    image=request.data.get('image')
-    userid=request.data.get('user_id')
-    # user_id=int(userid)
-    name=request.data.get('name')
-
+    image_data = request.data.get('image')
+    user_id = request.data.get('user_id')
+    name = request.data.get('name')
     try:
-        user=User_roles.objects.get(id=userid)
-        face_rec_entry = face_recoganizer(user=user,image=image,name=name)
+        user = User_roles.objects.get(id=user_id)
+        format, imgstr = image_data.split(';base64,')
+        # ext = format.split('/')[-1]
+        ext='jpg'
+        date=datetime.now()
+        file_name = f"{name}_{user_id}_{date}.{ext}"
+
+        file_content = ContentFile(base64.b64decode(imgstr), name=file_name)
+
+        existing_faceRecoganize = face_recoganizer.objects.filter(user=user).first()
+        if existing_faceRecoganize:
+            old_image_path = existing_faceRecoganize.image.path
+            existing_faceRecoganize.image.save(file_name, file_content)
+            existing_faceRecoganize.name = name
+            existing_faceRecoganize.save()
+            user.Is_activate_image_recoganize=True
+            user.save()
+            if os.path.exists(old_image_path):
+                os.remove(old_image_path)
+            return Response({'msg': 'Image Updated successfully', 'type': 'Success'})
+
+        face_rec_entry = face_recoganizer(user=user, name=name)
+        face_rec_entry.image.save(file_name, file_content)
         face_rec_entry.save()
-        return Response({'msg': 'image registered successfully. Registration complete.', 'type': 'Success'})
-    except (User_roles.DoesNotExist):
-        return Response({'msg': 'Invalid email address', 'type': 'danger'}) 
+        user.Is_activate_image_recoganize=True
+        user.save()
+        return Response({'msg': 'Image registered successfully. Registration complete.', 'type': 'Success'})
+    except User_roles.DoesNotExist:
+        return Response({'msg': 'Invalid user ID', 'type': 'danger'})
+    except Exception as e:
+        return Response({'msg': str(e), 'type': 'danger'})
 
+@api_view(['POST'])
+def Update_userDetails(request):
+    name=request.data.get('username')
+    email=request.data.get('email')
 
-
-
-
-
+    user=User_roles.objects.get(email=email)
+    user.name=name
+    user.save() 
+    user_afterUpdate = User_roles.objects.get(email=email)
+    user_dict = model_to_dict(user_afterUpdate)
+    msg = {'Type': 'Success'}
+    return Response({**user_dict, **msg})
