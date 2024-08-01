@@ -3,6 +3,7 @@ from rest_framework.response import Response  # type: ignore
 from rest_framework.decorators  import api_view # type: ignore
 from .models import User_roles,otp_verification,face_recoganizer
 import face_recognition
+import fingerprint
 import cv2
 from django.forms.models import model_to_dict
 from django.conf import settings
