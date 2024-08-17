@@ -1,14 +1,29 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RemoveUserData } from "../../services/storage";
+import { getUserData } from "../../services/storage";
+import axios from 'axios';
 
 const Aside = () => {
     const navigate = useNavigate();  
-
+    const view_source="http://localhost:4500/api/v1/get_source_detail/"
+    const userdetails = getUserData();
+    
     const logout= ()=>{
 
         RemoveUserData();
         return navigate("/");
+    }
+
+    const view_all_source = async (e) =>{
+        e.preventDefault();
+        const res = await axios.get(view_source+userdetails.id);
+        
+        navigate("/view_source"
+            , {
+                state: { details: res.data },
+              });
+        console.log(res)
     }
     return (
         <div className="row">
@@ -42,6 +57,20 @@ const Aside = () => {
                 <a href="finger">
                     <button className="btn btn-info form-control">
                         Finger Print
+                    </button>
+                </a>
+            </div>
+            <div className="col-md-12 mb-1">
+                <a href="/add_source">
+                    <button className="btn btn-info form-control">
+                        Add Source
+                    </button>
+                </a>
+            </div>
+            <div className="col-md-12 mb-1">
+                <a href="">
+                    <button className="btn btn-info form-control" onClick={view_all_source}>
+                        View Source
                     </button>
                 </a>
             </div>

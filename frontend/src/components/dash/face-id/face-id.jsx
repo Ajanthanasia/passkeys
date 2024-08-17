@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 
 function FaceId() {
-    const Facerecoganize_Register_Url = "http://localhost:4500/api/v1/register_face_recog";
+    const Facerecoganize_Register_Url = "http://localhost:4500/api/v1/Update_face_recoganize";
     const userdetails = getUserData();
     // const updateData=UpdateGetData()
     const [nickname, setNickname] = useState(userdetails.name);
@@ -72,27 +72,6 @@ function FaceId() {
                         ) : (
                             <button className="btn btn-success form-control" onClick={capture}>Capture photo</button>
                         )}
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-md-8">
-                        <b><label htmlFor="">Nickname</label></b>
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Enter your nickname..."
-                            value={nickname}
-                            onChange={(e) => setNickname(e.target.value)}
-                        />
-                        <code>{customError}</code>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-md-12">
-                        <label htmlFor="">Your photos</label>
-                    </div>
-                    <div className="col-md-12">
-                        <img src="" alt="..." className="img-thumbnail" />
                     </div>
                 </div>
             </div>

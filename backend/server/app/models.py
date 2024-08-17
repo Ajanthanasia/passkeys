@@ -28,3 +28,12 @@ class face_recoganizer(models.Model):
     name=models.CharField(max_length=50)
     image = models.ImageField(upload_to='face_recognition_pic/', height_field=None, width_field=None, max_length=100)
     
+class add_source(models.Model):
+    id=models.AutoField(primary_key=True,unique=True)
+    user=models.ForeignKey(User_roles, on_delete=models.CASCADE, related_name='source')
+    source=models.CharField(max_length=250)
+    source_url=models.CharField(max_length=250)
+    password=models.CharField(max_length=255)
+    
+    
+    

@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useState , useCallback, useRef }from "react";
 import { Navigate, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ShowSuccessMessage from './../alert/show-success-message';
 import ShowWarningMessage from "../alert/show-warning-message";
-import { storeUserData, getUserData } from "../../services/storage";
+import { storeUserData } from "../../services/storage";
+
+import Webcam from "react-webcam";
 
 function LoginPage() {
     const navigate = useNavigate();
-    const userdetails = getUserData()
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -17,6 +18,10 @@ function LoginPage() {
 
     const [msg, setMsg] = useState("");
     const [error, setError] = useState("");
+    // for face rcoganition
+    const [showFacePopup, setShowFacePopup] = useState(false);
+    const webcamRef = useRef(null);
+    const [imgSrc, setImgSrc] = useState(null);
 
     const signinUrl = "http://localhost:4500/api/v1/login";
 
@@ -36,6 +41,7 @@ function LoginPage() {
                 const res = await axios.post(`${signinUrl}`, {
                     email: email,
                     password: password,
+                    image: imgSrc,
                 });
                 if (res.data.Type == "Success") {
                     storeUserData(res.data)
@@ -44,13 +50,25 @@ function LoginPage() {
                 }
                 else if (res.data.Type != "Success") {
                     setError(res.data.msg)
-
+                    setImgSrc(null);
                 }
             }
         } catch (error) {
             console.log(error);
         }
     }
+    const showFacePopupHandler = (e) => {
+        e.preventDefault();
+        setShowFacePopup(true);
+    };
+    const capture = useCallback(() => {
+        const imageSrc = webcamRef.current.getScreenshot();
+        setImgSrc(imageSrc);
+    }, [webcamRef]);
+
+    const retake = () => {
+        setImgSrc(null);
+    };
  
     return (
         <div className="panel panel-default">
@@ -88,12 +106,12 @@ function LoginPage() {
                 </div>
                 <div className="row mt-1">
                     <div className="col-md-8">
-                        <Link to="/Login_By_face_ID">
-                            <button className="btn btn-success form-control">
-                            Login By Face_ID
-                            </button>
-                        </Link>
-                        
+                        <button
+                            className="btn btn-primary form-control"
+                            onClick={showFacePopupHandler}
+                        >
+                            Click for Login the face Id
+                        </button>
                     </div>
                 </div>
                 <div className="row mt-1">
@@ -113,6 +131,34 @@ function LoginPage() {
                     </Link>
                 </div>
             </div>
+            {showFacePopup && (
+                <div className="otp-popup">
+                    <div className="otp-popup-content">
+                        <code>{error}</code>
+                        {imgSrc ? (
+                            <img src={imgSrc} alt="webcam" />
+                        ) : (
+                            <Webcam height={300} width={200} ref={webcamRef} />
+                        )}
+                        <div className="row mt-1">
+                            <div className="col-md-8">
+                                {imgSrc ? (
+                                    <button className="btn btn-success form-control" onClick={retake}>
+                                        Retake
+                                    </button>
+                                ) : (
+                                    <button className="btn btn-success form-control" onClick={capture}>
+                                        Login your face
+                                    </button>
+                                )}
+                                <button className="btn btn-primary form-control" onClick={() => setShowFacePopup(false)}>
+                                    Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
