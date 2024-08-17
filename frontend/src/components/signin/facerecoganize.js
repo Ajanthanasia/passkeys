@@ -13,11 +13,9 @@ function Facerecoganize() {
 
     const capture = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot();
-        console.log(imageSrc);
         setImgSrc(imageSrc);
         uploadImage(imageSrc);
     }, [webcamRef]);
-
     const retake = () => {
         setImgSrc(null);
     };
@@ -42,29 +40,24 @@ function Facerecoganize() {
     };
 
     return (
-        
-        <div className="row mt-1">
+        <>
             <code>{error}</code>
-            <div className="container">
                 {imgSrc ? (
                     <img src={imgSrc} alt="webcam" />
                 ) : (
                     <Webcam height={300} width={300} ref={webcamRef} />
                 )}
-                <div className="btn-container">
-                    <button className="btn btn-success form-control" onClick={capture}>Capture photo</button>
-                </div>
                 <div className="row mt-1">
                     <div className="col-md-8">
-                        <Link to="/">
-                            <button className="btn btn-success form-control">
-                                Login By Email
-                            </button>
-                        </Link>
+                    {imgSrc ? (
+                            <button className="btn btn-success form-control" onClick={retake}>Retake</button>
+                        ) : (
+                            <button className="btn btn-success form-control" onClick={capture}>Register your face</button>
+                        )
+                    }
                     </div>
                 </div>
-            </div>
-        </div>
+     </>
     );
 }
 
