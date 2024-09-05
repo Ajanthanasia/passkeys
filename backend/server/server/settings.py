@@ -82,6 +82,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'server.wsgi.application'
 
 
+
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -159,4 +160,4 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 
-
+ENCRYPTION_KEY = b'Yq2wWgd65k7Af_qIIuhH7QSFaXEODe1bXPnskmF0m34='

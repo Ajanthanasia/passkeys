@@ -15,21 +15,21 @@ function AddSource() {
 
     const [customError, setCustomError] = useState("");
     const [passwordStrength, setPasswordStrength] = useState("");
-
+ 
     const checkPasswordStrength = (password) => {
         if (password.length <= 4) {
-            return "Weak password";
+            return "Weak Password";
         } else if (password.length < 8) {
-            return "Medium password";
+            return "Medium Password";
         } else {
             const hasUpperCase = /[A-Z]/.test(password);
             const hasNumber = /\d/.test(password);
             const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
             if (hasUpperCase && hasNumber && hasSpecialChar) {
-                return "Strong password";
+                return "Strong Password";
             } else {
-                return "Medium password";
+                return "Medium Password";
             }
         }
     };
@@ -105,7 +105,14 @@ function AddSource() {
                                 value={password}
                                 onChange={handlePasswordChange}
                             />
-                            <p>Password strength: {passwordStrength}</p>
+                            <p  style={{ 
+                                margin: 0, 
+                                color: passwordStrength === 'Strong Password' ? 'green' : 'red',
+                                fontWeight: 'bold'
+                            }}
+                            >
+                            {passwordStrength}
+                            </p>
                             <code>{customError}</code>
                         </div>
                     </div>

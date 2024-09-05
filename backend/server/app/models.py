@@ -6,8 +6,8 @@ from django.db import models
 class User_roles(models.Model):
     id = models.AutoField(primary_key=True,unique=True)
     name = models.CharField( max_length=255)  
-    email = models.CharField( max_length=255,unique=True)  
-    email_verified_at =  models.DateTimeField(null=True, blank=True)  
+    email = models.CharField( max_length=255)  
+    # email_verified_at =  models.DateTimeField(null=True, blank=True)  
     password = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
     is_active=models.BooleanField(default=False)

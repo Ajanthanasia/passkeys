@@ -15,6 +15,7 @@ function LoginPage() {
 
     const [emailError, setEmailError] = useState("");
     const [passwordError, setPasswordError] = useState("");
+    const [imgsrcError,setImgsrcError]=useState("")
 
     const [msg, setMsg] = useState("");
     const [error, setError] = useState("");
@@ -22,38 +23,52 @@ function LoginPage() {
     const [showFacePopup, setShowFacePopup] = useState(false);
     const webcamRef = useRef(null);
     const [imgSrc, setImgSrc] = useState(null);
+    const [signinClick,setSigninClick]=useState(false);
 
     const signinUrl = "http://localhost:4500/api/v1/login";
 
     const handleSubmit = async (event) => {
+        setSigninClick(true)
         event.preventDefault();
         try {
             setEmailError("");
             setPasswordError("");
+            setImgsrcError("");
             setError("error");
             if (email === "") {
+                setSigninClick(false)
                 setEmailError("This field is required!");
             }
             if (password === "") {
+                setSigninClick(false)
                 setPasswordError("This field is required!");
             }
-            if (email && password) {
+            if (imgSrc===null) {
+                setSigninClick(false)
+                setImgsrcError("Login your face id");
+            }
+            if (email && password && imgSrc) {
                 const res = await axios.post(`${signinUrl}`, {
                     email: email,
                     password: password,
                     image: imgSrc,
                 });
                 if (res.data.Type == "Success") {
+                    setSigninClick(false)
                     storeUserData(res.data)
-                    // console.log(res)
+                    console.log(res)
                     navigate("/dashboard");
                 }
                 else if (res.data.Type != "Success") {
                     setError(res.data.msg)
                     setImgSrc(null);
+                    setSigninClick(false)
+                    console.log(res.data.msg)
                 }
             }
         } catch (error) {
+            setSigninClick(false)
+            setError(error)
             console.log(error);
         }
     }
@@ -101,7 +116,9 @@ function LoginPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
-                        <code>{passwordError}</code>
+                        <code>{passwordError}</code> <br />
+                        {/* <code>{error}</code> */}
+                        <code>{imgsrcError}</code>
                     </div>
                 </div>
                 <div className="row mt-1">
@@ -109,14 +126,16 @@ function LoginPage() {
                         <button
                             className="btn btn-primary form-control"
                             onClick={showFacePopupHandler}
+                            disabled={signinClick}
                         >
-                            Click for Login the face Id
+                            Click for Face Identification
                         </button>
                     </div>
                 </div>
                 <div className="row mt-1">
                     <div className="col-md-8">
-                        <button type="submit" className="btn btn-primary form-control">
+                        <button type="submit" className="btn btn-primary form-control"
+                        disabled={signinClick}>
                             Login
                         </button>
                     </div>
@@ -125,7 +144,8 @@ function LoginPage() {
             <div className="row mt-1">
                 <div className="col-md-8">
                     <Link to="/register">
-                        <button className="btn btn-success form-control">
+                        <button className="btn btn-success form-control"
+                        disabled={signinClick}>
                             Sign Up
                         </button>
                     </Link>
@@ -134,7 +154,6 @@ function LoginPage() {
             {showFacePopup && (
                 <div className="otp-popup">
                     <div className="otp-popup-content">
-                        <code>{error}</code>
                         {imgSrc ? (
                             <img src={imgSrc} alt="webcam" />
                         ) : (

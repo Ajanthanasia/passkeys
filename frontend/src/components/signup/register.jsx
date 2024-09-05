@@ -20,11 +20,13 @@ function RegisterPage() {
     const [passwordError, setPasswordError] = useState("");
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
     const [customError, setCustomError] = useState("");
+    const [imgsrcError,setImgsrcError]=useState("")
 
     const [otp, setOtp] = useState("");
     const [otpError, setOtpError] = useState("");
     const [showOtpPopup, setShowOtpPopup] = useState(false);
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
+    const [signupClick,setSignupClick]=useState(false);
 
     // Face recognition popup state
     const [showFacePopup, setShowFacePopup] = useState(false);
@@ -32,24 +34,61 @@ function RegisterPage() {
     const [imgSrc, setImgSrc] = useState(null);
     const [error, setError] = useState("");
 
+        
+    const [passwordStrength, setPasswordStrength] = useState("");
+    const [passwordStrength_confirmPassword, setPasswordStrength_confirmPassword] = useState("");
+
+    const checkPasswordStrength = (password) => {
+        if (password.length <= 4) {
+            return "Weak Password";
+        } else if (password.length < 8) {
+            return "Medium Password";
+        } else {
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+            if (hasUpperCase && hasNumber && hasSpecialChar) {
+                return "Strong Password";
+            } else {
+                return "Medium Password";
+            }
+        }
+    };
+
+    const handlePasswordChange = (e) => {
+        const newPassword = e.target.value;
+        setPassword(newPassword);
+        setPasswordStrength(checkPasswordStrength(newPassword));
+    };
+    
+    const handlePasswordChange_confirmPassword = (e) => {
+        const new_Confirm_Password = e.target.value;
+        setConfirmPassword(new_Confirm_Password);
+        setPasswordStrength_confirmPassword(checkPasswordStrength(new_Confirm_Password));
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
-
+        
         // Clear previous errors
         setUsernameError("");
         setEmailError("");
         setPasswordError("");
         setConfirmPasswordError("");
         setCustomError("");
+        setImgsrcError("");
 
         // Basic form validation
         if (username === "") setUsernameError("This field is required");
         if (email === "") setEmailError("This field is required");
         if (password === "") setPasswordError("This field is required");
         if (confirmPassword === "") setConfirmPasswordError("This field is required");
-
+        if (imgSrc===null) setImgsrcError("Register your face id");
         if (username && email && password && confirmPassword && imgSrc) {
+            setSignupClick(true)
             if (password !== confirmPassword) {
+                setSignupClick(false)
                 setConfirmPasswordError("Passwords do not match");
             } else {
                 console.log(imgSrc)
@@ -62,14 +101,17 @@ function RegisterPage() {
                         image: imgSrc,
                     });
                     if (res.data.Type === "Success") {
+                        setSignupClick(true)
                         setRegistrationSuccess(true);
                         setShowOtpPopup(true);
                         setRegisterButtonClass("disabled");
                     } else {
+                        setSignupClick(false)
                         setCustomError(res.data.msg);
                         setImgSrc(null);
                     }
                 } catch (error) {
+                    setSignupClick(false)
                     setCustomError("An error occurred during registration");
                     console.error("Error during registration:", error);
                 }
@@ -157,8 +199,17 @@ function RegisterPage() {
                             className="form-control"
                             placeholder="Enter your password..."
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            // onChange={(e) => setPassword(e.target.value)}
+                            onChange={handlePasswordChange}
                         />
+                        <p  style={{ 
+                                margin: 0, 
+                                color: passwordStrength === 'Strong Password' ? 'green' : 'red',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            {passwordStrength}
+                        </p>
                         <code>{passwordError}</code>
                     </div>
                 </div>
@@ -170,21 +221,40 @@ function RegisterPage() {
                             className="form-control"
                             placeholder="Confirm your password..."
                             value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            // onChange={(e) => setConfirmPassword(e.target.value)}
+                            onChange={handlePasswordChange_confirmPassword}
                         />
+                        <p style={{ 
+                                margin: 0, 
+                                color: passwordStrength_confirmPassword === 'Strong Password' ? 'green' : 'red',
+                                fontWeight: 'bold'
+                        }}>
+                            {passwordStrength_confirmPassword}
+                        </p>
                         <code>{confirmPasswordError}</code>
                         <code>{customError}</code>
+                        <br />
+                        <code>{imgsrcError}</code>
                     </div>
                 </div>
+                <div className="row mt-1">
+                    <div className="col-md-8">
                 <button
                     className={`btn btn-primary form-control ${registerButtonClass}`}
                     onClick={showFacePopupHandler}
+                    disabled={signupClick}
                 >
                     Click for face recognition
                 </button>
+                
+                </div>
+                </div>
+
                 <div className="row mt-1">
                     <div className="col-md-8">
-                        <button type="submit" className={`btn btn-primary form-control ${registerButtonClass}`}>
+                        <button type="submit" className={`btn btn-primary form-control ${registerButtonClass}`}
+                        disabled={signupClick}
+                        >
                             Sign Up
                         </button>
                     </div>
@@ -193,7 +263,8 @@ function RegisterPage() {
             <div className="row mt-1">
                 <div className="col-md-8">
                     <Link to="/">
-                        <button className="btn btn-secondary form-control">
+                        <button className="btn btn-secondary form-control"
+                        disabled={signupClick}>
                             Login
                         </button>
                     </Link>
