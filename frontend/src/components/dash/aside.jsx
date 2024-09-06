@@ -16,14 +16,8 @@ const Aside = () => {
     }
 
     const view_all_source = async (e) =>{
-        e.preventDefault();
-        const res = await axios.get(view_source+userdetails.id);
-        
-        navigate("/view_source"
-            , {
-                state: { details: res.data },
-              });
-        console.log(res)
+        e.preventDefault();        
+        navigate("/view_source");
     }
     return (
         <div className="row">
@@ -54,9 +48,9 @@ const Aside = () => {
                 </a>
             </div>
             <div className="col-md-12 mb-1">
-                <a href="finger">
+                <a href="/password_change">
                     <button className="btn btn-info form-control">
-                        Finger Print
+                        Change Password
                     </button>
                 </a>
             </div>
